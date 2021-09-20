@@ -7,28 +7,28 @@ namespace QuestAPIPerformanceTesting
 {
 	class Program
 	{
-		private static bool active;
-		private static double rate = 20;
+		private const string QUEST_IP = "192.168.1.147";
+		private const double RATE = 60;
+
 		private static DateTime nextFetchTime;
 
 		private static void Main(string[] args)
 		{
-			active = true;
-			nextFetchTime = DateTime.Now + TimeSpan.FromSeconds(1f / rate);
+			nextFetchTime = DateTime.Now + TimeSpan.FromSeconds(1f / RATE);
 			Thread fetchThread = new Thread(FetchThread);
 			fetchThread.Start();
 		}
 
 		private static void FetchThread()
 		{
-			while (active)
+			while (true)
 			{
 				DateTime now = DateTime.Now;
 				if (now > nextFetchTime)
 				{
 					try
 					{
-						WebRequest request = WebRequest.Create($"http://192.168.1.147:6721/session");
+						WebRequest request = WebRequest.Create($"http://{QUEST_IP}:6721/session");
 						Task.Run(async () =>
 						{
 							WebResponse response = await request.GetResponseAsync();
@@ -37,14 +37,14 @@ namespace QuestAPIPerformanceTesting
 					}
 					catch (Exception)
 					{
-						// ignored
+						// Not in game
 					}
 
-					nextFetchTime += TimeSpan.FromSeconds(1f / rate);
+					nextFetchTime += TimeSpan.FromSeconds(1f / RATE);
 					if (now > nextFetchTime)
 					{
 						Console.WriteLine($"Missed cycle. {(now - nextFetchTime).Milliseconds}");
-						nextFetchTime = now + TimeSpan.FromSeconds(1f / rate);
+						nextFetchTime = now + TimeSpan.FromSeconds(1f / RATE);
 					}
 				}
 			}
